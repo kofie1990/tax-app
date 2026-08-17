@@ -8,6 +8,7 @@ export function TaxDashboard() {
   const [basicIncome, setBasicIncome] = useState<string>("");
   const [allowances, setAllowances] = useState<string>("");
   const [reliefs, setReliefs] = useState<string>("");
+  const [bonus, setBonus] = useState<string>("");
   const [showBreakdown, setShowBreakdown] = useState<boolean>(false);
 
   const hasSSNIT = true;
@@ -15,14 +16,18 @@ export function TaxDashboard() {
   const numBasic = parseFloat(basicIncome) || 0;
   const numAllowances = parseFloat(allowances) || 0;
   const numReliefs = parseFloat(reliefs) || 0;
+  const numBonus = parseFloat(bonus) || 0;
 
   const results: TaxCalculationResult = calculateTax(
     numBasic, // gross is just the basic part, allowances are added automatically within calculateTax
     numBasic,
     numAllowances,
     numReliefs,
-    hasSSNIT
+    hasSSNIT,
+    numBonus
   );
+
+  const totalGross = numBasic + numAllowances + numBonus;
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' }).format(val);
@@ -71,6 +76,20 @@ export function TaxDashboard() {
                   type="number"
                   value={allowances}
                   onChange={(e) => setAllowances(e.target.value)}
+                  placeholder="0"
+                  className="w-full bg-atelier-dark/50 border border-atelier-light/10 rounded-xl pl-14 pr-4 py-3 text-atelier-light placeholder:text-atelier-light/30 focus:outline-none focus:ring-2 focus:ring-atelier-accent/50 transition-all font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-atelier-light/80">Bonus</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-atelier-light/50 font-mono">GH₵</span>
+                <input
+                  type="number"
+                  value={bonus}
+                  onChange={(e) => setBonus(e.target.value)}
                   placeholder="0"
                   className="w-full bg-atelier-dark/50 border border-atelier-light/10 rounded-xl pl-14 pr-4 py-3 text-atelier-light placeholder:text-atelier-light/30 focus:outline-none focus:ring-2 focus:ring-atelier-accent/50 transition-all font-mono"
                 />
@@ -132,6 +151,12 @@ export function TaxDashboard() {
                   <p className="text-atelier-light/80">Income Tax</p>
                   <p className="text-lg font-medium text-red-400/80">{formatCurrency(results.payeTax)}</p>
                 </div>
+                {results.bonusTax > 0 && (
+                  <div className="flex justify-between items-center">
+                    <p className="text-atelier-light/80">Bonus Tax</p>
+                    <p className="text-lg font-medium text-red-400/80">{formatCurrency(results.bonusTax)}</p>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <p className="text-atelier-light/80">SSNIT (Tier 1, (5.5%))</p>
                   <p className="text-lg font-medium text-red-400/80">{formatCurrency(results.employeeSSNIT)}</p>
@@ -179,33 +204,33 @@ export function TaxDashboard() {
                   <div className="space-y-4 text-sm border-t border-atelier-light/10 pt-4">
                     <div className="flex justify-between">
                       <span className="text-atelier-light/60">Gross Income</span>
-                      <span className="font-mono">{formatCurrency(numBasic + numAllowances)}</span>
+                      <span className="font-mono">{formatCurrency(totalGross)}</span>
                     </div>
 
                     {/* Visualization */}
-                    {(numBasic + numAllowances) > 0 && (
+                    {totalGross > 0 && (
                       <div className="py-2">
                         <div className="w-full h-3 flex rounded-full overflow-hidden bg-atelier-dark/50 border border-atelier-light/5">
                           <div
-                            style={{ width: `${(results.netSalary / (numBasic + numAllowances)) * 100}%` }}
+                            style={{ width: `${(results.netSalary / totalGross) * 100}%` }}
                             className="bg-atelier-accent transition-all duration-1000"
                             title="Net Salary"
                           />
                           <div
-                            style={{ width: `${(results.payeTax / (numBasic + numAllowances)) * 100}%` }}
+                            style={{ width: `${(results.payeTax / totalGross) * 100}%` }}
                             className="bg-red-400 transition-all duration-1000"
                             title="PAYE Tax"
                           />
                           <div
-                            style={{ width: `${(results.employeeSSNIT / (numBasic + numAllowances)) * 100}%` }}
+                            style={{ width: `${(results.employeeSSNIT / totalGross) * 100}%` }}
                             className="bg-orange-400 transition-all duration-1000"
                             title="SSNIT"
                           />
                         </div>
                         <div className="flex gap-4 text-[11px] mt-2 text-atelier-light/60">
-                          <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-atelier-accent"></span>Net ({((results.netSalary / (numBasic + numAllowances)) * 100).toFixed(1)}%)</div>
-                          <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-400"></span>Tax ({((results.payeTax / (numBasic + numAllowances)) * 100).toFixed(1)}%)</div>
-                          <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-orange-400"></span>SSNIT ({((results.employeeSSNIT / (numBasic + numAllowances)) * 100).toFixed(1)}%)</div>
+                          <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-atelier-accent"></span>Net ({((results.netSalary / totalGross) * 100).toFixed(1)}%)</div>
+                          <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-400"></span>Tax ({((results.payeTax / totalGross) * 100).toFixed(1)}%)</div>
+                          <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-orange-400"></span>SSNIT ({((results.employeeSSNIT / totalGross) * 100).toFixed(1)}%)</div>
                         </div>
                       </div>
                     )}
@@ -218,6 +243,12 @@ export function TaxDashboard() {
                       <span className="text-atelier-light/60">Tax Relief</span>
                       <span className="font-mono text-red-400">-{formatCurrency(numReliefs)}</span>
                     </div>
+                    {results.bonusTax > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-atelier-light/60">Bonus Tax (5% on excessive bonus)</span>
+                        <span className="font-mono text-red-400">-{formatCurrency(results.bonusTax)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between border-t border-atelier-light/10 pt-3">
                       <span className="text-atelier-light/80 font-medium">Taxable Income (for PAYE)</span>
                       <span className="font-medium font-mono">{formatCurrency(results.taxableIncome)}</span>

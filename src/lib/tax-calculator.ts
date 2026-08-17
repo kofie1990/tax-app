@@ -5,6 +5,8 @@ export interface TaxCalculationResult {
   employeeSSNIT: number;
   taxableIncome: number;
   payeTax: number;
+  bonus: number;
+  bonusTax: number;
   netSalary: number;
   tier2Employer: number;
   taxBands: { name: string; amount: number }[];
@@ -24,7 +26,8 @@ export function calculateTax(
   basicSalary: number = grossSalary,
   allowances: number = 0,
   reliefs: number = 0,
-  hasSSNIT: boolean = true
+  hasSSNIT: boolean = true,
+  bonus: number = 0
 ): TaxCalculationResult {
 
   // 1. Calculate SSNIT (5.5% of Basic Salary)
@@ -61,9 +64,11 @@ export function calculateTax(
     remainingIncome -= taxableAmountInBand;
   }
 
-  // 4. Calculate Net Salary
-  // Net = Gross + Allowances - SSNIT - PAYE
-  const netSalary = grossSalary + allowances - employeeSSNIT - payeTax;
+  // 4. Calculate Bonus Tax
+  const bonusTax = bonus * 0.05;
+  // 5. Calculate Net Salary
+  // Net = Gross + Allowances + Bonus - SSNIT - PAYE - BonusTax
+  const netSalary = grossSalary + allowances + bonus - employeeSSNIT - payeTax - bonusTax;
 
   return {
     grossSalary,
@@ -72,6 +77,8 @@ export function calculateTax(
     employeeSSNIT,
     taxableIncome,
     payeTax,
+    bonus,
+    bonusTax,
     netSalary,
     tier2Employer,
     taxBands,
