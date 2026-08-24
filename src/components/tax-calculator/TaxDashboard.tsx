@@ -303,6 +303,10 @@ export function TaxDashboard() {
               </motion.div>
             )}
           </AnimatePresence>
+          
+          <p className="text-xs text-atelier-light/40 text-center mt-6 italic">
+            *Disclaimer: Results are provided for indicative purposes only. They do not replace professional tax accounting or payroll services.
+          </p>
         </motion.div>
       </div>
     </div>
